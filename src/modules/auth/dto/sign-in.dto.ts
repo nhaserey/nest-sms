@@ -20,4 +20,12 @@ export class SignInDto {
     }),
   })
   password: string;
+
+  @ApiProperty({ description: '2FA of the user code', minLength: 6 })
+  @MinLength(6, {
+    message: i18nValidationMessage('validation.minLength', {
+      min: 6,
+    }),
+  })
+  code?: string;
 }

@@ -7,6 +7,12 @@ import { AuthModule } from '../modules/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import { AcceptLanguageResolver, I18nJsonLoader, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { RolesGuard } from 'src/modules/common/guard/roles.guard';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { JwtAuthGuard } from 'src/modules/common/guard/jwt.guard';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisConfig } from 'src/modules/utils/config/config';
+import { NoCacheInterceptor } from 'src/modules/common/interceptor/no-cache.interceptor';
 
 @Module({
   imports: [
@@ -31,11 +37,31 @@ import { AcceptLanguageResolver, I18nJsonLoader, I18nModule, QueryResolver } fro
         AcceptLanguageResolver,
       ],
     }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: redisConfig,
+      isGlobal: true,
+    }),
     AuthModule,
     UsersModule,
     MailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: NoCacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}

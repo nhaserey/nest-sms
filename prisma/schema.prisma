@@ -57,6 +57,7 @@ model User {
   twoFactorSecret    String?
   status             UserStatus   @default(UNKNOW)
   googleId           String?
+  refresh_token     String? 
 
   apiKey ApiKey[]
 }
